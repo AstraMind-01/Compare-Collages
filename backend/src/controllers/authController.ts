@@ -35,7 +35,10 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
       expiresIn: '7d',
     });
 
-    res.status(201).json({ user: newUser.rows[0], token });
+    res.status(201).json({ 
+      user: { id: newUser.rows[0].id, email: newUser.rows[0].email }, 
+      token 
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
       res.status(400).json({ message: 'Validation error', errors: error.issues });
