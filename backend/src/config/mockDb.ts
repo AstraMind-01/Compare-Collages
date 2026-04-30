@@ -53,10 +53,18 @@ export const mockQuery = async (text: string, params?: any[]): Promise<any> => {
 
   // Auth Mocks
   if (text.includes('INSERT INTO users')) {
-    const newUser = { id: uuidv4(), email: params?.[0], password_hash: params?.[1] };
+    const newUser = { 
+      id: uuidv4(), 
+      email: params?.[0], 
+      name: params?.[1] || null,
+      picture: params?.[2] || null,
+      provider: params?.[3] || 'email',
+      password_hash: params?.[4] || null 
+    };
     mockDb.users.push(newUser);
     return { rows: [newUser] };
   }
+
 
   if (text.includes('SELECT * FROM users WHERE email = $1')) {
     const user = mockDb.users.find(u => u.email === params?.[0]);

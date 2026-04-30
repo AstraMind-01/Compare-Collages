@@ -27,8 +27,8 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
     const passwordHash = await bcrypt.hash(password, salt);
 
     const newUser = await query(
-      'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email',
-      [email, passwordHash]
+      'INSERT INTO users (email, password_hash, provider) VALUES ($1, $2, $3) RETURNING id, email',
+      [email, passwordHash, 'email']
     );
 
     const token = jwt.sign({ id: newUser.rows[0].id }, process.env.JWT_SECRET || 'secret', {
@@ -101,31 +101,34 @@ export const googleLogin = async (req: Request, res: Response): Promise<void> =>
     }
 
     const email = payload.email;
+    const name = payload.name;
+    const picture = payload.picture;
+    
     const user = await query('SELECT * FROM users WHERE email = $1', [email]);
 
-    let userId: string;
+    let userData;
 
     if (user.rows.length === 0) {
-      // User doesn't exist, create one with a random password
-      const randomPassword = crypto.randomBytes(32).toString('hex');
-      const salt = await bcrypt.genSalt(10);
-      const passwordHash = await bcrypt.hash(randomPassword, salt);
-
+      // User doesn't exist, create one
       const newUser = await query(
-        'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id',
-        [email, passwordHash]
+        'INSERT INTO users (email, name, picture, provider) VALUES ($1, $2, $3, $4) RETURNING id, email, name, picture',
+        [email, name, picture, 'google']
       );
-      userId = newUser.rows[0].id;
+      userData = newUser.rows[0];
     } else {
-      userId = user.rows[0].id;
+      userData = user.rows[0];
+      // Optionally update picture/name if it changed
+      if (userData.provider === 'google') {
+        await query('UPDATE users SET name = $1, picture = $2 WHERE id = $3', [name, picture, userData.id]);
+      }
     }
 
-    const jwtToken = jwt.sign({ id: userId }, process.env.JWT_SECRET || 'secret', {
+    const jwtToken = jwt.sign({ id: userData.id }, process.env.JWT_SECRET || 'secret', {
       expiresIn: '7d',
     });
 
     res.json({
-      user: { id: userId, email },
+      user: { id: userData.id, email: userData.email, name: userData.name, picture: userData.picture },
       token: jwtToken,
     });
   } catch (error) {
