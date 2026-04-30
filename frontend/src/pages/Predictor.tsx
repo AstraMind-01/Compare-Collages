@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Trophy, School, ArrowRight, Info } from 'lucide-react';
+import { Trophy, School, ArrowRight, Info } from 'lucide-react';
 import api from '../services/api';
 import CollegeCard from '../components/CollegeCard';
 

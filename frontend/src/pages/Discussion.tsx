@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { MessageSquare, Plus, Search, User, Clock, ArrowRight } from 'lucide-react';
+import { Plus, User, Clock, ArrowRight } from 'lucide-react';
 
 interface Question {
   id: string;
