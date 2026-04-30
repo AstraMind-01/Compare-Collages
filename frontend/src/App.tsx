@@ -12,7 +12,6 @@ import Dashboard from './pages/Dashboard';
 import Predictor from './pages/Predictor';
 import Discussion from './pages/Discussion';
 import QuestionDetail from './pages/QuestionDetail';
-import VerifyEmail from './pages/VerifyEmail';
 
 const App: React.FC = () => {
   return (
@@ -32,9 +31,9 @@ const App: React.FC = () => {
                 <Route path="/predictor" element={<Predictor />} />
                 <Route path="/discussion" element={<Discussion />} />
                 <Route path="/discussion/:id" element={<QuestionDetail />} />
-                <Route path="/verify-email" element={<VerifyEmail />} />
               </Routes>
             </main>
+
 
 
             <footer className="bg-white border-t border-gray-100 py-8 text-center text-gray-500 text-sm mt-auto">

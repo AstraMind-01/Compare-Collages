@@ -9,22 +9,21 @@ const Signup: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
     try {
       const response = await api.post('/auth/signup', { email, password });
-      setSuccess(response.data.message);
-      // Don't auto-login for email/password signups anymore
+      login(response.data.user, response.data.token);
+      navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Signup failed');
     }
   };
+
 
 
   const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
@@ -47,7 +46,7 @@ const Signup: React.FC = () => {
         </div>
         <form className="space-y-6" onSubmit={handleSubmit}>
           {error && <div className="text-red-500 text-sm text-center bg-red-50 p-2 rounded-lg font-medium border border-red-100">{error}</div>}
-          {success && <div className="text-green-600 text-sm text-center bg-green-50 p-3 rounded-lg font-medium border border-green-100">{success}</div>}
+
 
           <div className="space-y-4">
             <div>

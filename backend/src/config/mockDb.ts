@@ -59,36 +59,27 @@ export const mockQuery = async (text: string, params?: any[]): Promise<any> => {
       name: params?.[1] || null,
       picture: params?.[2] || null,
       provider: params?.[3] || 'email',
-      password_hash: params?.[4] || null,
-      is_verified: false,
-      verification_token: params?.[5] || null,
-      verification_token_expires_at: params?.[6] || null
+      password_hash: params?.[4] || null
     };
     mockDb.users.push(newUser);
     return { rows: [newUser] };
   }
 
 
-  if (text.includes('SELECT * FROM users WHERE verification_token = $1')) {
-    const user = mockDb.users.find(u => u.verification_token === params?.[0]);
-    return { rows: user ? [user] : [] };
-  }
-
-  if (text.includes('UPDATE users SET is_verified = TRUE, verification_token = NULL WHERE id = $1')) {
-    const user = mockDb.users.find(u => u.id === params?.[0]);
-    if (user) {
-      user.is_verified = true;
-      user.verification_token = null;
-    }
-    return { rows: user ? [user] : [] };
-  }
-
 
 
   if (text.includes('SELECT * FROM users WHERE email = $1')) {
-    const user = mockDb.users.find(u => u.email === params?.[0]);
+    const searchEmail = params?.[0];
+    if (!searchEmail) return { rows: [] };
+    
+    const user = mockDb.users.find(u => 
+      u.email && u.email.toLowerCase() === searchEmail.toLowerCase()
+    );
+    
+    console.log(`Mock DB: Searching for user ${searchEmail} -> ${user ? 'FOUND' : 'NOT FOUND'}`);
     return { rows: user ? [user] : [] };
   }
+
 
   // Saved Colleges Mocks
   if (text.includes('INSERT INTO saved_colleges')) {
