@@ -9,6 +9,9 @@ import Compare from './pages/Compare';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
+import Predictor from './pages/Predictor';
+import Discussion from './pages/Discussion';
+import QuestionDetail from './pages/QuestionDetail';
 
 const App: React.FC = () => {
   return (
@@ -25,8 +28,12 @@ const App: React.FC = () => {
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/predictor" element={<Predictor />} />
+                <Route path="/discussion" element={<Discussion />} />
+                <Route path="/discussion/:id" element={<QuestionDetail />} />
               </Routes>
             </main>
+
             <footer className="bg-white border-t border-gray-100 py-8 text-center text-gray-500 text-sm mt-auto">
               <p>&copy; {new Date().getFullYear()} CollegesHub. All rights reserved.</p>
             </footer>

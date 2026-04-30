@@ -6,6 +6,8 @@ export const mockDb = {
   colleges: colleges.map((c: any) => ({ ...c, id: uuidv4() })),
   courses: [] as any[],
   saved_colleges: [] as any[],
+  questions: [] as any[],
+  answers: [] as any[],
 };
 
 export const mockQuery = async (text: string, params?: any[]): Promise<any> => {
@@ -77,5 +79,34 @@ export const mockQuery = async (text: string, params?: any[]): Promise<any> => {
     return { rows: result };
   }
 
+  // Q&A Mocks
+  if (text.includes('INSERT INTO questions')) {
+    const question = { id: uuidv4(), user_id: params?.[0], title: params?.[1], content: params?.[2], created_at: new Date() };
+    mockDb.questions.push(question);
+    return { rows: [question] };
+  }
+
+  if (text.includes('SELECT q.*, u.email')) {
+    // Return all questions
+    return { rows: mockDb.questions.map(q => ({ ...q, email: mockDb.users.find(u => u.id === q.user_id)?.email || 'anon' })) };
+  }
+
+  if (text.includes('SELECT * FROM questions WHERE id = $1')) {
+    const q = mockDb.questions.find(q => q.id === params?.[0]);
+    return { rows: q ? [q] : [] };
+  }
+
+  if (text.includes('INSERT INTO answers')) {
+    const answer = { id: uuidv4(), question_id: params?.[0], user_id: params?.[1], content: params?.[2], created_at: new Date() };
+    mockDb.answers.push(answer);
+    return { rows: [answer] };
+  }
+
+  if (text.includes('SELECT a.*, u.email')) {
+    const answers = mockDb.answers.filter(a => a.question_id === params?.[0]);
+    return { rows: answers.map(a => ({ ...a, email: mockDb.users.find(u => u.id === a.user_id)?.email || 'anon' })) };
+  }
+
   return { rows: [] };
 };
+

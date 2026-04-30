@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes';
 import collegeRoutes from './routes/collegeRoutes';
 import savedRoutes from './routes/savedRoutes';
+import questionRoutes from './routes/questionRoutes';
 
 dotenv.config();
 
@@ -17,6 +18,8 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/colleges', collegeRoutes);
 app.use('/api/saved-colleges', savedRoutes);
+app.use('/api/questions', questionRoutes);
+
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'API is running' });
