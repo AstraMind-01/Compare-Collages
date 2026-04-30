@@ -8,10 +8,8 @@ import crypto from 'crypto';
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || '256296087011-p5181g6n7evnbg24pmgpj79tkhou1kot.apps.googleusercontent.com');
 
-const signupSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-});
+import { signupSchema, loginSchema } from '../utils/validators';
+import { sendVerificationEmail } from '../utils/emailService';
 
 export const signup = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -25,19 +23,19 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
 
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
+    const verificationToken = crypto.randomBytes(32).toString('hex');
 
     const newUser = await query(
-      'INSERT INTO users (email, password_hash, provider) VALUES ($1, $2, $3) RETURNING id, email',
-      [email, passwordHash, 'email']
+      'INSERT INTO users (email, password_hash, provider, is_verified, verification_token) VALUES ($1, $2, $3, $4, $5) RETURNING id, email',
+      [email, passwordHash, 'email', false, verificationToken]
     );
 
-    const token = jwt.sign({ id: newUser.rows[0].id }, process.env.JWT_SECRET || 'secret', {
-      expiresIn: '7d',
-    });
+    // SEND VERIFICATION EMAIL
+    await sendVerificationEmail(email, verificationToken);
 
     res.status(201).json({ 
-      user: { id: newUser.rows[0].id, email: newUser.rows[0].email }, 
-      token 
+      message: 'Signup successful! Please check your email to verify your account.',
+      user: { id: newUser.rows[0].id, email: newUser.rows[0].email }
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -48,28 +46,59 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+export const verifyEmail = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { token } = req.body;
+    if (!token) {
+      res.status(400).json({ message: 'No token provided' });
+      return;
+    }
+
+    const result = await query('SELECT * FROM users WHERE verification_token = $1', [token]);
+    if (result.rows.length === 0) {
+      res.status(400).json({ message: 'Invalid or expired verification token' });
+      return;
+    }
+
+    const user = result.rows[0];
+    await query('UPDATE users SET is_verified = TRUE, verification_token = NULL WHERE id = $1', [user.id]);
+
+    res.json({ message: 'Email verified successfully! You can now log in.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Verification failed', error: (error as Error).message });
+  }
+};
+
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = signupSchema.parse(req.body);
 
-    const user = await query('SELECT * FROM users WHERE email = $1', [email]);
-    if (user.rows.length === 0) {
+    const userResult = await query('SELECT * FROM users WHERE email = $1', [email]);
+    if (userResult.rows.length === 0) {
       res.status(400).json({ message: 'Invalid credentials' });
       return;
     }
 
-    const validPassword = await bcrypt.compare(password, user.rows[0].password_hash);
+    const user = userResult.rows[0];
+
+    // BLOCK LOGIN IF NOT VERIFIED
+    if (user.provider === 'email' && !user.is_verified) {
+      res.status(403).json({ message: 'Please verify your email before logging in.' });
+      return;
+    }
+
+    const validPassword = await bcrypt.compare(password, user.password_hash);
     if (!validPassword) {
       res.status(400).json({ message: 'Invalid credentials' });
       return;
     }
 
-    const token = jwt.sign({ id: user.rows[0].id }, process.env.JWT_SECRET || 'secret', {
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET || 'secret', {
       expiresIn: '7d',
     });
 
     res.json({
-      user: { id: user.rows[0].id, email: user.rows[0].email },
+      user: { id: user.id, email: user.email, name: user.name, picture: user.picture },
       token,
     });
   } catch (error) {
@@ -80,6 +109,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
   }
 };
+
 
 export const googleLogin = async (req: Request, res: Response): Promise<void> => {
   try {

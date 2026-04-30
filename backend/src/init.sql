@@ -5,6 +5,8 @@ CREATE TABLE IF NOT EXISTS users (
   picture TEXT,
   provider VARCHAR(50) DEFAULT 'email',
   password_hash VARCHAR(255),
+  is_verified BOOLEAN DEFAULT FALSE,
+  verification_token TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 

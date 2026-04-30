@@ -59,11 +59,28 @@ export const mockQuery = async (text: string, params?: any[]): Promise<any> => {
       name: params?.[1] || null,
       picture: params?.[2] || null,
       provider: params?.[3] || 'email',
-      password_hash: params?.[4] || null 
+      password_hash: params?.[4] || null,
+      is_verified: false,
+      verification_token: params?.[5] || null
     };
     mockDb.users.push(newUser);
     return { rows: [newUser] };
   }
+
+  if (text.includes('SELECT * FROM users WHERE verification_token = $1')) {
+    const user = mockDb.users.find(u => u.verification_token === params?.[0]);
+    return { rows: user ? [user] : [] };
+  }
+
+  if (text.includes('UPDATE users SET is_verified = TRUE, verification_token = NULL WHERE id = $1')) {
+    const user = mockDb.users.find(u => u.id === params?.[0]);
+    if (user) {
+      user.is_verified = true;
+      user.verification_token = null;
+    }
+    return { rows: user ? [user] : [] };
+  }
+
 
 
   if (text.includes('SELECT * FROM users WHERE email = $1')) {
