@@ -61,11 +61,13 @@ export const mockQuery = async (text: string, params?: any[]): Promise<any> => {
       provider: params?.[3] || 'email',
       password_hash: params?.[4] || null,
       is_verified: false,
-      verification_token: params?.[5] || null
+      verification_token: params?.[5] || null,
+      verification_token_expires_at: params?.[6] || null
     };
     mockDb.users.push(newUser);
     return { rows: [newUser] };
   }
+
 
   if (text.includes('SELECT * FROM users WHERE verification_token = $1')) {
     const user = mockDb.users.find(u => u.verification_token === params?.[0]);

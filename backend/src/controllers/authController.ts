@@ -24,10 +24,11 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
     const verificationToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes from now
 
     const newUser = await query(
-      'INSERT INTO users (email, password_hash, provider, is_verified, verification_token) VALUES ($1, $2, $3, $4, $5) RETURNING id, email',
-      [email, passwordHash, 'email', false, verificationToken]
+      'INSERT INTO users (email, password_hash, provider, is_verified, verification_token, verification_token_expires_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, email',
+      [email, passwordHash, 'email', false, verificationToken, expiresAt]
     );
 
     // SEND VERIFICATION EMAIL
@@ -61,7 +62,14 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
     }
 
     const user = result.rows[0];
-    await query('UPDATE users SET is_verified = TRUE, verification_token = NULL WHERE id = $1', [user.id]);
+
+    // CHECK IF TOKEN EXPIRED
+    if (user.verification_token_expires_at && new Date() > new Date(user.verification_token_expires_at)) {
+      res.status(400).json({ message: 'Verification link has expired. Please request a new one.' });
+      return;
+    }
+
+    await query('UPDATE users SET is_verified = TRUE, verification_token = NULL, verification_token_expires_at = NULL WHERE id = $1', [user.id]);
 
     res.json({ message: 'Email verified successfully! You can now log in.' });
   } catch (error) {
@@ -109,6 +117,43 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
   }
 };
+
+export const resendVerification = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      res.status(400).json({ message: 'Email is required' });
+      return;
+    }
+
+    const result = await query('SELECT * FROM users WHERE email = $1', [email]);
+    if (result.rows.length === 0) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+
+    const user = result.rows[0];
+    if (user.is_verified) {
+      res.status(400).json({ message: 'Email is already verified' });
+      return;
+    }
+
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    await query(
+      'UPDATE users SET verification_token = $1, verification_token_expires_at = $2 WHERE id = $3',
+      [verificationToken, expiresAt, user.id]
+    );
+
+    await sendVerificationEmail(email, verificationToken);
+
+    res.json({ message: 'Verification email resent! Please check your inbox.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to resend verification email', error: (error as Error).message });
+  }
+};
+
 
 
 export const googleLogin = async (req: Request, res: Response): Promise<void> => {

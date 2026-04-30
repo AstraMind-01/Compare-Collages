@@ -9,11 +9,14 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [resendStatus, setResendStatus] = useState<'idle' | 'loading' | 'success'>('idle');
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    setResendStatus('idle');
     try {
       const response = await api.post('/auth/login', { email, password });
       login(response.data.user, response.data.token);
@@ -22,6 +25,18 @@ const Login: React.FC = () => {
       setError(err.response?.data?.message || 'Login failed');
     }
   };
+
+  const handleResend = async () => {
+    setResendStatus('loading');
+    try {
+      await api.post('/auth/resend-verification', { email });
+      setResendStatus('success');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to resend');
+      setResendStatus('idle');
+    }
+  };
+
 
   const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     try {
@@ -42,7 +57,27 @@ const Login: React.FC = () => {
           <p className="mt-2 text-gray-500">Log in to view your saved colleges</p>
         </div>
         <form className="space-y-6" onSubmit={handleSubmit}>
-          {error && <div className="text-red-500 text-sm text-center bg-red-50 p-2 rounded-lg font-medium border border-red-100">{error}</div>}
+          {error && (
+            <div className="text-red-500 text-sm text-center bg-red-50 p-3 rounded-lg font-medium border border-red-100 flex flex-col gap-2">
+              {error}
+              {error.includes('verify') && resendStatus !== 'success' && (
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={resendStatus === 'loading'}
+                  className="text-accent font-bold hover:underline text-xs"
+                >
+                  {resendStatus === 'loading' ? 'Sending...' : 'Resend Verification Link'}
+                </button>
+              )}
+            </div>
+          )}
+          {resendStatus === 'success' && (
+            <div className="text-green-600 text-sm text-center bg-green-50 p-3 rounded-lg font-medium border border-green-100">
+              Verification email resent! Please check your inbox.
+            </div>
+          )}
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
