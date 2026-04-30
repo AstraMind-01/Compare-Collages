@@ -129,7 +129,7 @@ const CollegeDetail: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
             <div className="bg-sections p-6 rounded-xl border border-gray-100 flex items-start gap-4">
               <div className="bg-white p-3 rounded-lg shadow-sm">
                 <IndianRupee className="w-6 h-6 text-gray-700" />
@@ -150,22 +150,82 @@ const CollegeDetail: React.FC = () => {
             </div>
           </div>
 
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <BookOpen className="w-6 h-6 text-accent" /> Available Courses
-            </h2>
-            {college.courses && college.courses.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {college.courses.map((course) => (
-                  <div key={course.id} className="border border-gray-200 p-4 rounded-xl hover:border-accent hover:shadow-sm transition-all bg-white">
-                    <h3 className="font-bold text-gray-900 mb-1">{course.name}</h3>
-                    <p className="text-gray-500 text-sm font-medium">{course.duration}</p>
+          <div className="space-y-12">
+            {/* Courses Section */}
+            <section>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <BookOpen className="w-6 h-6 text-accent" /> Available Courses
+              </h2>
+              {college.courses && college.courses.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {college.courses.map((course) => (
+                    <div key={course.id} className="border border-gray-200 p-4 rounded-xl hover:border-accent hover:shadow-sm transition-all bg-white">
+                      <h3 className="font-bold text-gray-900 mb-1">{course.name}</h3>
+                      <p className="text-gray-500 text-sm font-medium">{course.duration}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 italic">No courses listed.</p>
+              )}
+            </section>
+
+            {/* Placements Section */}
+            <section className="bg-gray-50 -mx-8 px-8 py-10">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <CheckCircle className="w-6 h-6 text-green-600" /> Placement Highlights
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
+                  <p className="text-3xl font-bold text-accent mb-1">{college.placement_percentage}%</p>
+                  <p className="text-sm text-gray-500 font-medium">Placement Rate</p>
+                </div>
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
+                  <p className="text-3xl font-bold text-gray-900 mb-1">₹12.5L</p>
+                  <p className="text-sm text-gray-500 font-medium">Average Package</p>
+                </div>
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
+                  <p className="text-3xl font-bold text-gray-900 mb-1">₹45L</p>
+                  <p className="text-sm text-gray-500 font-medium">Highest Package</p>
+                </div>
+              </div>
+              <p className="mt-6 text-gray-600 leading-relaxed">
+                Top recruiters include Google, Microsoft, Amazon, Deloitte, and Goldman Sachs. The career services cell provides extensive training and internship opportunities starting from the third year.
+              </p>
+            </section>
+
+            {/* Reviews Section */}
+            <section>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <Star className="w-6 h-6 text-yellow-500" /> Student Reviews
+              </h2>
+              <div className="space-y-6">
+                {[
+                  { name: "Priya Sharma", role: "Final Year Student", rating: 5, comment: "Amazing infrastructure and the best placement support I could ask for. The faculty is very helpful." },
+                  { name: "Rahul Verma", role: "Alumni (Batch of 2023)", rating: 4, comment: "Great campus life and exposure. The coding culture here is top-notch." }
+                ].map((review, i) => (
+                  <div key={i} className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-white font-bold">
+                          {review.name[0]}
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-gray-900">{review.name}</h4>
+                          <p className="text-xs text-gray-500 font-medium">{review.role}</p>
+                        </div>
+                      </div>
+                      <div className="flex text-yellow-400">
+                        {[...Array(review.rating)].map((_, i) => (
+                          <Star key={i} className="w-4 h-4 fill-current" />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-gray-600 italic">"{review.comment}"</p>
                   </div>
                 ))}
               </div>
-            ) : (
-              <p className="text-gray-500 italic">No courses listed.</p>
-            )}
+            </section>
           </div>
         </div>
       </div>
