@@ -38,7 +38,7 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
     res.status(201).json({ user: newUser.rows[0], token });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      res.status(400).json({ message: 'Validation error', errors: error.errors });
+      res.status(400).json({ message: 'Validation error', errors: (error as any).errors });
     } else {
       res.status(500).json({ message: 'Server error', error: (error as Error).message });
     }
@@ -71,7 +71,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      res.status(400).json({ message: 'Validation error', errors: error.errors });
+      res.status(400).json({ message: 'Validation error', errors: (error as any).errors });
     } else {
       res.status(500).json({ message: 'Server error', error: (error as Error).message });
     }
