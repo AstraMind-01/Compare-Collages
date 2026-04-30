@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { OAuth2Client } from 'google-auth-library';
 import crypto from 'crypto';
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || '213412324694-t6plcbv46n3e6o92jeqs4t18t5ikg7sv.apps.googleusercontent.com');
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || '256296087011-p5181g6n7evnbg24pmgpj79tkhou1kot.apps.googleusercontent.com');
 
 const signupSchema = z.object({
   email: z.string().email(),
