@@ -28,7 +28,7 @@ export const saveCollege = async (req: AuthRequest, res: Response): Promise<void
     res.status(201).json({ message: 'College saved successfully' });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      res.status(400).json({ message: 'Validation error', errors: (error as any).errors });
+      res.status(400).json({ message: 'Validation error', errors: error.issues });
     } else {
       res.status(500).json({ message: 'Server error', error: (error as Error).message });
     }
